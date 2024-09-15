@@ -19,4 +19,4 @@ Enabling users to log in and save their election predictions.
 Storing polling data, candidate profiles, and election predictions and keeping track of user accounts and their prediction history.
 Websocket Data: Real-time updates to polling data and predictions as new data is received
 ## Mock-up Design
-![Website mock-up using NinjaMock](image-1.png)
+![image](https://github.com/user-attachments/assets/4764186e-27a9-45a7-a837-6cfaec684121)
