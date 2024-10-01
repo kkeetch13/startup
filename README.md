@@ -1,13 +1,21 @@
 # startup
 ## HTML Startup
 Added HTML pages for each part of the website.
+
 Used proper HTML style.
+
 Added links between pages.
+
 Added placeholder for 3rd party service calls.
+
 Added application images.
+
 Added login placeholder.
+
 Added Database placeholder.
+
 Added Websocket placeholder.
+
 ## Elevator Pitch:
 Stay informed and engaged with the 2024 presidential election through our all-in-one platform. Access the latest polling data, detailed candidate profiles, and explore an interactive map that lets you make your own election predictions. Whether you’re tracking trends or making forecasts, our site is your go-to resource for everything related to the 2024 race.
 ## Key Features:
