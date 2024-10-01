@@ -6,6 +6,8 @@ Used proper HTML style.
 
 Added links between pages.
 
+Added placeholder for candidate info.
+
 Added placeholder for 3rd party service calls.
 
 Added application images.
