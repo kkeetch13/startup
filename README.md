@@ -20,3 +20,5 @@ Store visitor login credentials for personalized access and save user interactio
 Add a real-time feature: When a visitor interacts with the portfolio (e.g., submits a game score or leaves a comment), broadcast it to all other users viewing the portfolio in real time.
 ## Mock-up Design
 ![image](https://github.com/user-attachments/assets/17617de8-9dba-492b-af13-9ca025bcc09a)
+
+4/1/25 Added CSS for each page, ensuring to fulfill each requirement
