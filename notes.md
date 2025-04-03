@@ -97,3 +97,21 @@ Handling the toggling of the checkboxes was particularly interesting.
   ))}
 </div>
 ```
+
+Ported simon-css to React/Vite:
+Converted the original simon-css HTML/CSS files into a React-based single-page application using Vite.
+
+Reorganized Folder Structure:
+
+Created a public folder for static assets (favicon, placeholder images).
+
+Created a src folder for React components and moved global styles (renamed main.css to app.css).
+
+Converted HTML to JSX:
+Converted each view (Home, Play, Projects, About) by copying the main element content, replacing HTML attributes (e.g., class → className), and creating separate component files.
+
+Set Up Routing & Styling:
+Implemented React Router in App.jsx for client-side navigation and integrated React Bootstrap for consistent styling.
+
+Deployment & Version Control:
+Configured the project for deployment on an AWS EC2 instance, using a deploy script and Git for version control.
