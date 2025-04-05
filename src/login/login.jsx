@@ -3,7 +3,7 @@ import React from 'react';
 export function Login() {
   return (
     <main>
-        <img src="/images/familyphoto.jpeg" alt="Family Photo">
+        <img src="~/public/familyphoto.jpeg" alt="Family Photo">
     
     </img>
       <div class="elevator-pitch">
