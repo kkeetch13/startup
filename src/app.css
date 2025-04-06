@@ -21,32 +21,30 @@
 /* Header */
 header {
   width: 100%;
-  flex: 0 80px;
-  padding: 1rem;
-  text-align: center;
+  padding: 1rem 0;
   background: linear-gradient(90deg, #001f3f, #003366);
   color: #fff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Navigation Menu */
-nav {
-  margin-top: 0.5rem;
+header .navbar-brand {
+  font-size: 1.75rem;
+  font-weight: bold;
 }
 
-menu {
+/* Navigation Menu */
+nav ul {
+  list-style: none;
   display: flex;
-  flex-direction: row;
   justify-content: center;
   gap: 1rem;
-  list-style: none;
+  margin: 0;
   padding: 0.5rem 0;
 }
 
-menu li a {
+nav ul li a {
   display: inline-block;
   padding: 0.5rem 1rem;
-  margin: 0 0.3em;
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
@@ -54,20 +52,13 @@ menu li a {
   border: 2px solid #fff;
   border-radius: 20px;
   background: transparent;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-menu li a:hover,
-menu li a:focus {
+nav ul li a:hover,
+nav ul li a:focus {
   background-color: #fff;
   color: #001f3f;
-}
-
-/* Horizontal Rule */
-hr {
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 1rem 0;
 }
 
 /* Main Content */
@@ -79,6 +70,7 @@ main {
   text-align: center;
 }
 
+/* Image Styles */
 main img {
   width: 100%;
   max-height: 600px;
@@ -86,13 +78,13 @@ main img {
   margin-bottom: 1rem;
 }
 
+/* Additional Content (e.g., Elevator Pitch) */
 .elevator-pitch {
   padding: 0 1rem;
 }
 
 /* Footer */
 footer {
-  flex: 0 30px;
   padding: 1rem;
   text-align: center;
   border-top: 1px solid #ccc;
@@ -103,7 +95,7 @@ footer {
 footer a {
   text-decoration: none;
   color: #0077cc;
-  transition: color 0.3s ease;
+  transition: color 0.3s;
 }
 
 footer a:hover,
