@@ -56,7 +56,7 @@ export default function App() {
         <footer className="bg-dark text-white-50 py-3">
           <div className="container-fluid text-center">
             <span className="text-reset">Kaden Keetch</span>
-            <a className="text-reset ms-2" href="https://github.com/kkeetch13/startup.git">
+            <a href="https://github.com/kkeetch13/startup.git ">
               Source
             </a>
           </div>
