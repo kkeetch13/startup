@@ -94,13 +94,12 @@ footer {
 
 footer a {
   text-decoration: none;
-  color: #fff;
+  color: #0077cc;
   transition: color 0.3s;
 }
 
-footer a:hover,
-footer a:focus {
-  color: #fff;
+footer a:hover,footer a:focus {
+  color: #005fa3;
 }
 
 /* Responsive Adjustments */
