@@ -16,7 +16,9 @@
   display: flex;
   flex-direction: column;
   min-width: 375px;
+  min-height: 100vh;
 }
+
 
 /* Header */
 header {
