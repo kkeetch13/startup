@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
 
-export function Play() {
+function chunkArray(arr, size) {
+  const result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}
+
+export default function Play() {
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
   const generateSecret = () => {
     const secret = [];
     for (let i = 0; i < 4; i++) {
-      const randomIndex = Math.floor(Math.random() * availableColors.length);
-      secret.push(availableColors[randomIndex]);
+      const randIndex = Math.floor(Math.random() * availableColors.length);
+      secret.push(availableColors[randIndex]);
     }
     return secret;
   };
 
   const [secret, setSecret] = useState(generateSecret());
   const [guess, setGuess] = useState([]);
-  const [feedback, setFeedback] = useState('Make your guess by selecting 4 colors.');
+  const [feedbackMessage, setFeedbackMessage] = useState('Make your guess by selecting 4 colors.');
   const [history, setHistory] = useState([]);
 
   const resetGame = () => {
     setSecret(generateSecret());
     setGuess([]);
-    setFeedback('New game! Make your guess by selecting 4 colors.');
+    setFeedbackMessage('New game! Make your guess by selecting 4 colors.');
     setHistory([]);
   };
 
@@ -30,59 +38,63 @@ export function Play() {
     }
   };
 
-
-  const calculateFeedback = (secretArray, guessArray) => {
+  const getFeedback = (secretArray, guessArray) => {
+    const secretCopy = [...secretArray];
+    const guessCopy = [...guessArray];
     let greens = 0;
-    let yellows = 0;
-    const secretFreq = {};
-    const guessFreq = {};
-
-  
-    for (let i = 0; i < 4; i++) {
-      if (guessArray[i] === secretArray[i]) {
+    for (let i = 0; i < guessCopy.length; i++) {
+      if (guessCopy[i] === secretCopy[i]) {
         greens++;
-      } else {
-        secretFreq[secretArray[i]] = (secretFreq[secretArray[i]] || 0) + 1;
-        guessFreq[guessArray[i]] = (guessFreq[guessArray[i]] || 0) + 1;
+        secretCopy[i] = null;
+        guessCopy[i] = null;
       }
     }
-
-    for (const color in guessFreq) {
-      if (secretFreq[color]) {
-        yellows += Math.min(secretFreq[color], guessFreq[color]);
+    let yellows = 0;
+    for (let i = 0; i < guessCopy.length; i++) {
+      if (guessCopy[i] !== null) {
+        const idx = secretCopy.indexOf(guessCopy[i]);
+        if (idx !== -1) {
+          yellows++;
+          secretCopy[idx] = null;
+          guessCopy[i] = null;
+        }
       }
     }
-    return { greens, yellows };
+    const blanks = 4 - (greens + yellows);
+    const feedbackArray = [];
+    for (let i = 0; i < greens; i++) feedbackArray.push('green');
+    for (let i = 0; i < yellows; i++) feedbackArray.push('yellow');
+    for (let i = 0; i < blanks; i++) feedbackArray.push('blank');
+    return feedbackArray;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (guess.length !== 4) {
-      setFeedback('Please select exactly 4 colors.');
+      setFeedbackMessage('Please select exactly 4 colors.');
       return;
     }
-    const { greens, yellows } = calculateFeedback(secret, guess);
-
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      { guess: [...guess], greens, yellows },
-    ]);
-    if (greens === 4) {
-      setFeedback('Congratulations! You cracked the code.');
-
+    const feedbackPegs = getFeedback(secret, guess);
+    const greenCount = feedbackPegs.filter((peg) => peg === 'green').length;
+    setHistory([...history, { guess: [...guess], feedback: feedbackPegs }]);
+    if (greenCount === 4) {
+      setFeedbackMessage('Congratulations! You cracked the code.');
       setTimeout(() => {
         resetGame();
       }, 2000);
     } else {
-      setFeedback(`Feedback: ${greens} green, ${yellows} yellow`);
+      setFeedbackMessage('Try again!');
       setGuess([]);
     }
   };
 
   return (
-    <main className="container-fluid bg-secondary text-center py-5">
-      <h1>Mastermind!</h1>
-      <p>{feedback}</p>
+    <main
+      className="container-fluid text-center py-5"
+      style={{ backgroundColor: '#666', minHeight: '100vh' }}
+    >
+      <h1 style={{ color: '#ddd' }}>Mastermind Game</h1>
+      <p style={{ color: '#fff' }}>{feedbackMessage}</p>
       <div className="mb-3">
         {availableColors.map((color) => (
           <button
@@ -95,21 +107,34 @@ export function Play() {
               margin: '5px',
               borderRadius: '4px',
               color: '#fff',
-              cursor: 'pointer',
+              cursor: 'pointer'
             }}
           >
             {color}
           </button>
         ))}
       </div>
-      <div className="mb-3">
-        <p>Your guess: {guess.length > 0 ? guess.join(', ') : 'none'}</p>
+      <div className="mb-3" style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+        {guess.length === 0 && <p style={{ color: '#fff' }}>Your guess: none</p>}
+        {guess.map((color, idx) => (
+          <div
+            key={idx}
+            style={{
+              width: '30px',
+              height: '30px',
+              backgroundColor: color,
+              borderRadius: '50%',
+              border: '2px solid #333'
+            }}
+          />
+        ))}
       </div>
-      <form onSubmit={handleSubmit} className="mb-3">
-        <button 
+      <form onSubmit={handleSubmit}>
+        <button
           type="submit"
           className="btn btn-primary me-2"
           disabled={guess.length !== 4}
+          style={{ marginRight: '5px' }}
         >
           Submit Guess
         </button>
@@ -118,69 +143,66 @@ export function Play() {
         </button>
       </form>
       {history.length > 0 && (
-        <div className="mt-4">
-          <h2>Guess History</h2>
-          <table className="table table-light table-bordered w-50 mx-auto">
-            <thead>
-              <tr>
-                <th>Guess</th>
-                <th>Exactly Correct</th>
-                <th>In the Sequence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((entry, index) => (
-                <tr key={index}>
-                  <td>
-                    {entry.guess.map((color, idx) => (
-                      <span
-                        key={idx}
+        <div className="history" style={{ marginTop: '2rem', color: '#fff' }}>
+          <h3>History</h3>
+          {history.map((entry, idx) => {
+            const chunkedPegs = chunkArray(entry.feedback, 2);
+            return (
+              <div
+                key={idx}
+                className="history-entry"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1rem',
+                  gap: '1rem'
+                }}
+              >
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  {entry.guess.map((c, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        backgroundColor: c,
+                        borderRadius: '50%',
+                        border: '2px solid #333'
+                      }}
+                    />
+                  ))}
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '5px'
+                  }}
+                >
+                  {chunkedPegs.map((row, rIdx) =>
+                    row.map((pegColor, pIdx) => (
+                      <div
+                        key={`${rIdx}-${pIdx}`}
                         style={{
-                          display: 'inline-block',
                           width: '20px',
                           height: '20px',
-                          backgroundColor: color,
-                          border: '1px solid #000',
-                          marginRight: '5px',
+                          borderRadius: '50%',
+                          border: '2px solid #333',
+                          backgroundColor:
+                            pegColor === 'green'
+                              ? 'green'
+                              : pegColor === 'yellow'
+                              ? 'yellow'
+                              : 'lightgray'
                         }}
-                        title={color}
-                      ></span>
-                    ))}
-                  </td>
-                  <td>
-                    {[...Array(entry.greens)].map((_, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          display: 'inline-block',
-                          width: '15px',
-                          height: '15px',
-                          backgroundColor: 'green',
-                          border: '1px solid #000',
-                          marginRight: '2px',
-                        }}
-                      ></span>
-                    ))}
-                  </td>
-                  <td>
-                    {[...Array(entry.yellows)].map((_, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          display: 'inline-block',
-                          width: '15px',
-                          height: '15px',
-                          backgroundColor: 'yellow',
-                          border: '1px solid #000',
-                          marginRight: '2px',
-                        }}
-                      ></span>
-                    ))}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </main>
