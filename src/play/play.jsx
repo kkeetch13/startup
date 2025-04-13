@@ -1,110 +1,71 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export function Play() {
+  const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+  const secret = ['red', 'blue', 'green', 'yellow']; // Placeholder secret sequence
+  const [guess, setGuess] = useState([]);
+  const [feedback, setFeedback] = useState('Make a guess (4 colors)');
+
+  const handleColorClick = (color) => {
+    if (guess.length < 4) {
+      setGuess([...guess, color]);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (guess.length !== 4) {
+      setFeedback('Please choose 4 colors.');
+      return;
+    }
+    let correct = 0;
+    for (let i = 0; i < 4; i++) {
+      if (guess[i] === secret[i]) correct++;
+    }
+    if (correct === 4) {
+      setFeedback('Correct! You cracked the code.');
+    } else {
+      setFeedback(`You have ${correct} color(s) correct in the right position.`);
+    }
+  };
+
+  const handleReset = () => {
+    setGuess([]);
+    setFeedback('Make a guess (4 colors)');
+  };
+
   return (
-    <main>
-      <div class="players">
-        Player:
-        <span class="player-name">Mystery player</span>
-      </div>
-      <ul class="notification">
-        <li class="player-name">Tim started a new game</li>
-        <li class="player-name">Ada started a new game</li>
-        <li class="player-name">Tim won in 6 rounds </li>
-        <li class="player-name">Ada lost!</li>
-      </ul>
-
-      <br />
-
+    <main className="container-fluid bg-secondary text-center py-5">
+      <h1>Mastermind</h1>
+      <p>{feedback}</p>
       <div>
-        <label for="count">Score</label>
-        <input type="text" id="count" value="--" readonly />
+        {availableColors.map((color) => (
+          <button
+            key={color}
+            onClick={() => handleColorClick(color)}
+            style={{
+              backgroundColor: color,
+              border: 'none',
+              margin: '0.5rem',
+              padding: '1rem',
+              color: '#fff',
+              cursor: 'pointer'
+            }}
+          >
+            {color}
+          </button>
+        ))}
       </div>
-
-      <br />
-
-      <div>
-        <button>Reset</button>
+      <div style={{ marginTop: '1rem' }}>
+        <p>Your Guess: {guess.join(', ')}</p>
       </div>
-
-      <br />
-
-      <div>
-        <table>
-          <tr>
-            <td>
-              <button>
-              </button>
-            </td>
-            <td>
-              <button>
-                <svg aria-hidden="true" viewBox="0 0 100 100" height="100" width="100">
-                  <path d="M5,5 5,95 95,95 Q 95,5 5,5" fill="red" />
-                </svg>
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <button>
-                <svg aria-hidden="true" viewBox="0 0 100 100" height="100" width="100">
-                  <path d="M5,5 95,5 95,95 Q 5,95 5,5" fill="blue" />
-                </svg>
-              </button>
-            </td>
-            <td>
-              <button>
-                <svg aria-hidden="true" viewBox="0 0 100 100" height="100" width="100">
-                  <path d="M95,5 5,5 5,95 Q 95,95 95,5" fill="yellow" />
-                </svg>
-              </button>
-            </td>
-          </tr>
-        </table>
-      
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Wins</th>
-              <th>Streak</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>Jones</td>
-              <td>34</td>
-              <td>29</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>Cooper</td>
-              <td>29</td>
-              <td>14</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>Alex</td>
-              <td>7</td>
-              <td>7</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <h1>Sign in</h1>
-      <form method="get" action="play.html">
-        <div>
-          <span>@</span>
-          <input type="text" placeholder="your@email.com" />
-        </div>
-        <div>
-          <span>🔒</span>
-          <input type="password" placeholder="password" />
-        </div>
-        <button type="submit">Login</button>
-        <button type="submit">Create</button>
+      <form onSubmit={handleSubmit} style={{ marginTop: '1rem' }}>
+        <button type="submit" className="btn btn-primary me-2">
+          Submit Guess
+        </button>
+        <button type="button" onClick={handleReset} className="btn btn-secondary">
+          Reset
+        </button>
       </form>
     </main>
   );
