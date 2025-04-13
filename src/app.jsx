@@ -18,24 +18,16 @@ export default function App() {
               <nav>
                 <ul className="nav">
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/">
-                      Home
-                    </NavLink>
+                    <NavLink className="nav-link" to="/">Home</NavLink>
                   </li>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/play">
-                      Play
-                    </NavLink>
+                    <NavLink className="nav-link" to="/play">Play</NavLink>
                   </li>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/projects">
-                      Projects
-                    </NavLink>
+                    <NavLink className="nav-link" to="/projects">Projects</NavLink>
                   </li>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/about">
-                      About
-                    </NavLink>
+                    <NavLink className="nav-link" to="/about">About</NavLink>
                   </li>
                 </ul>
               </nav>
@@ -49,27 +41,19 @@ export default function App() {
             <Route path="/play" element={<Play />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/about" element={<About />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<h2 className="text-center py-5">404: Page not found</h2>} />
           </Routes>
         </main>
 
         <footer className="bg-dark text-white-50 py-3">
           <div className="container-fluid text-center">
             <span className="text-reset">Kaden Keetch</span>
-            <a href="https://github.com/kkeetch13/startup.git ">
+            <a className="text-reset ms-2" href="https://github.com/kkeetch13/startup.git">
               Source
             </a>
           </div>
         </footer>
       </div>
     </BrowserRouter>
-  );
-}
-
-function NotFound() {
-  return (
-    <main className="container-fluid bg-secondary text-center py-5">
-      404: Return to sender. Address unknown.
-    </main>
   );
 }

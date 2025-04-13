@@ -15,11 +15,13 @@ export function Play() {
   const [secret, setSecret] = useState(generateSecret());
   const [guess, setGuess] = useState([]);
   const [feedback, setFeedback] = useState('Make your guess by selecting 4 colors.');
+  const [history, setHistory] = useState([]);
 
   const resetGame = () => {
     setSecret(generateSecret());
     setGuess([]);
     setFeedback('New game! Make your guess by selecting 4 colors.');
+    setHistory([]);
   };
 
   const handleColorClick = (color) => {
@@ -28,24 +30,55 @@ export function Play() {
     }
   };
 
+  // Calculate feedback as total counts of green (correct color + position)
+  // and yellow (correct color but wrong position)
+  const calculateFeedback = (secretArray, guessArray) => {
+    let greens = 0;
+    let yellows = 0;
+    const secretFreq = {};
+    const guessFreq = {};
+
+    // First pass: Count greens
+    for (let i = 0; i < 4; i++) {
+      if (guessArray[i] === secretArray[i]) {
+        greens++;
+      } else {
+        secretFreq[secretArray[i]] = (secretFreq[secretArray[i]] || 0) + 1;
+        guessFreq[guessArray[i]] = (guessFreq[guessArray[i]] || 0) + 1;
+      }
+    }
+
+    // Second pass: Count yellows from non-green positions
+    for (const color in guessFreq) {
+      if (secretFreq[color]) {
+        yellows += Math.min(secretFreq[color], guessFreq[color]);
+      }
+    }
+
+    return { greens, yellows };
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (guess.length !== 4) {
       setFeedback('Please select exactly 4 colors.');
       return;
     }
-    let correctPositions = 0;
-    for (let i = 0; i < 4; i++) {
-      if (guess[i] === secret[i]) {
-        correctPositions++;
-      }
-    }
-    if (correctPositions === 4) {
+    const { greens, yellows } = calculateFeedback(secret, guess);
+    // Append this guess to the history
+    setHistory((prevHistory) => [
+      ...prevHistory,
+      { guess: [...guess], greens, yellows },
+    ]);
+    if (greens === 4) {
       setFeedback('Congratulations! You cracked the code.');
-      resetGame();
+      // Reset after a short delay
+      setTimeout(() => {
+        resetGame();
+      }, 2000);
     } else {
-      setFeedback(`You have ${correctPositions} color(s) in the correct position.`);
-      setGuess([]);
+      setFeedback(`Feedback: ${greens} green, ${yellows} yellow`);
+      setGuess([]); // clear guess for the next attempt
     }
   };
 
@@ -65,7 +98,7 @@ export function Play() {
               margin: '5px',
               borderRadius: '4px',
               color: '#fff',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             {color}
@@ -73,20 +106,47 @@ export function Play() {
         ))}
       </div>
       <div className="mb-3">
-        <p>Your guess: {guess.join(', ') || 'none'}</p>
+        <p>Your guess: {guess.length > 0 ? guess.join(', ') : 'none'}</p>
       </div>
-      <form onSubmit={handleSubmit}>
-        <button 
+      <form onSubmit={handleSubmit} className="mb-3">
+        <button
           type="submit"
           className="btn btn-primary me-2"
           disabled={guess.length !== 4}
         >
           Submit Guess
         </button>
-        <button type="button" onClick={resetGame} className="btn btn-secondary">
+        <button
+          type="button"
+          onClick={resetGame}
+          className="btn btn-secondary"
+        >
           Reset Game
         </button>
       </form>
+      {history.length > 0 && (
+        <div className="mt-4">
+          <h2>Guess History</h2>
+          <table className="table table-light table-bordered w-50 mx-auto">
+            <thead>
+              <tr>
+                <th>Guess</th>
+                <th>Green</th>
+                <th>Yellow</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((entry, index) => (
+                <tr key={index}>
+                  <td>{entry.guess.join(', ')}</td>
+                  <td>{entry.greens}</td>
+                  <td>{entry.yellows}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </main>
   );
 }
