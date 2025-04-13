@@ -30,15 +30,14 @@ export function Play() {
     }
   };
 
-  // Calculate feedback as total counts of green (correct color + position)
-  // and yellow (correct color but wrong position)
+
   const calculateFeedback = (secretArray, guessArray) => {
     let greens = 0;
     let yellows = 0;
     const secretFreq = {};
     const guessFreq = {};
 
-    // First pass: Count greens
+  
     for (let i = 0; i < 4; i++) {
       if (guessArray[i] === secretArray[i]) {
         greens++;
@@ -48,13 +47,11 @@ export function Play() {
       }
     }
 
-    // Second pass: Count yellows from non-green positions
     for (const color in guessFreq) {
       if (secretFreq[color]) {
         yellows += Math.min(secretFreq[color], guessFreq[color]);
       }
     }
-
     return { greens, yellows };
   };
 
@@ -65,26 +62,26 @@ export function Play() {
       return;
     }
     const { greens, yellows } = calculateFeedback(secret, guess);
-    // Append this guess to the history
+
     setHistory((prevHistory) => [
       ...prevHistory,
       { guess: [...guess], greens, yellows },
     ]);
     if (greens === 4) {
       setFeedback('Congratulations! You cracked the code.');
-      // Reset after a short delay
+
       setTimeout(() => {
         resetGame();
       }, 2000);
     } else {
       setFeedback(`Feedback: ${greens} green, ${yellows} yellow`);
-      setGuess([]); // clear guess for the next attempt
+      setGuess([]);
     }
   };
 
   return (
     <main className="container-fluid bg-secondary text-center py-5">
-      <h1>Mastermind Game</h1>
+      <h1>Mastermind!</h1>
       <p>{feedback}</p>
       <div className="mb-3">
         {availableColors.map((color) => (
@@ -109,18 +106,14 @@ export function Play() {
         <p>Your guess: {guess.length > 0 ? guess.join(', ') : 'none'}</p>
       </div>
       <form onSubmit={handleSubmit} className="mb-3">
-        <button
+        <button 
           type="submit"
           className="btn btn-primary me-2"
           disabled={guess.length !== 4}
         >
           Submit Guess
         </button>
-        <button
-          type="button"
-          onClick={resetGame}
-          className="btn btn-secondary"
-        >
+        <button type="button" onClick={resetGame} className="btn btn-secondary">
           Reset Game
         </button>
       </form>
@@ -131,16 +124,59 @@ export function Play() {
             <thead>
               <tr>
                 <th>Guess</th>
-                <th>Green</th>
-                <th>Yellow</th>
+                <th>Exactly Correct</th>
+                <th>In the Sequence</th>
               </tr>
             </thead>
             <tbody>
               {history.map((entry, index) => (
                 <tr key={index}>
-                  <td>{entry.guess.join(', ')}</td>
-                  <td>{entry.greens}</td>
-                  <td>{entry.yellows}</td>
+                  <td>
+                    {entry.guess.map((color, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          display: 'inline-block',
+                          width: '20px',
+                          height: '20px',
+                          backgroundColor: color,
+                          border: '1px solid #000',
+                          marginRight: '5px',
+                        }}
+                        title={color}
+                      ></span>
+                    ))}
+                  </td>
+                  <td>
+                    {[...Array(entry.greens)].map((_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          display: 'inline-block',
+                          width: '15px',
+                          height: '15px',
+                          backgroundColor: 'green',
+                          border: '1px solid #000',
+                          marginRight: '2px',
+                        }}
+                      ></span>
+                    ))}
+                  </td>
+                  <td>
+                    {[...Array(entry.yellows)].map((_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          display: 'inline-block',
+                          width: '15px',
+                          height: '15px',
+                          backgroundColor: 'yellow',
+                          border: '1px solid #000',
+                          marginRight: '2px',
+                        }}
+                      ></span>
+                    ))}
+                  </td>
                 </tr>
               ))}
             </tbody>
