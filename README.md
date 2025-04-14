@@ -35,5 +35,8 @@ Converted the static site into a React app with client-side routing using React 
 ## React Part 2 – Interactivity
 Added interactive elements to the site, such as a functioning login system and responsive components. Implemented stateful behavior using hooks, and made components dynamic to respond to user actions like input and button clicks.
 
+## Startup Service
+I built a full‑stack Mastermind game application where I created a Node.js/Express backend with endpoints for authentication and high score submissions, and a React frontend that consumes these endpoints. I implemented secure login, registration, and logout functionalities while also integrating a high score submission feature based on the fastest time solved. Through this project, I learned how to manage state across components and routes, and how to seamlessly connect backend services with a modern, interactive frontend. 
+
 
 
