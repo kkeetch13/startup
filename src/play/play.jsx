@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PegRow from '../components/PegRow';
 import { submitScore } from '../api.js';
+import { useNavigate } from 'react-router-dom';
 
 function chunkArray(arr, size) {
   const result = [];
@@ -11,6 +12,7 @@ function chunkArray(arr, size) {
 }
 
 export default function Play({ userName }) {
+  const navigate = useNavigate();
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
   const generateSecret = () => {
@@ -96,7 +98,6 @@ export default function Play({ userName }) {
           setFeedbackMessage("You cracked the code, but there was an error submitting your score.");
         }
       }
-      // The game now remains on-screen; user must click "Reset Game" manually.
     } else {
       setFeedbackMessage('Try again!');
       setGuess([]);
@@ -155,6 +156,13 @@ export default function Play({ userName }) {
         </button>
         <button type="button" onClick={resetGame} className="btn btn-secondary">
           Reset Game
+        </button>
+        <button 
+          type="button" 
+          className="btn btn-info ms-2"
+          onClick={() => navigate('/scores')}
+        >
+          View Scores
         </button>
       </form>
       {history.length > 0 && (

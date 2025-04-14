@@ -12,7 +12,7 @@ export default function Auth({ onLogin }) {
       const user = isRegistering
         ? await registerUser(email, password)
         : await loginUser(email, password);
-      onLogin(user.email);
+        onLogin(user);
     } catch (err) {
       setError(err.message);
     }

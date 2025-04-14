@@ -7,10 +7,19 @@ import Play from './play/play';
 import { Projects } from './projects/projects';
 import { About } from './about/about';
 import Scores from './scores/scores';
+import { logoutUser } from './api.js';
 
 export default function App() {
-  // State to hold the logged-in user's name.
   const [user, setUser] = useState(null);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setUser(null);
+    } catch (err) {
+      console.error("Logout error", err);
+    }
+  };
 
   return (
     <BrowserRouter>
@@ -36,6 +45,13 @@ export default function App() {
                   <li className="nav-item">
                     <NavLink className="nav-link" to="/scores">Scores</NavLink>
                   </li>
+                  {user && (
+                    <li className="nav-item">
+                      <button className="nav-link btn btn-link" onClick={handleLogout}>
+                        Logout
+                      </button>
+                    </li>
+                  )}
                 </ul>
               </nav>
             </div>
@@ -44,9 +60,8 @@ export default function App() {
 
         <main>
           <Routes>
-            {/* If a user is logged in, show Play; otherwise, show the Auth screen */}
-            <Route path="/" element={user ? <Play userName={user} /> : <Auth onLogin={setUser} />} />
-            <Route path="/play" element={<Play userName={user} />} />
+            <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={setUser} />} />
+            <Route path="/play" element={<Play userName={user ? user.email : "Anonymous"} />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/about" element={<About />} />
             <Route path="/scores" element={<Scores />} />
