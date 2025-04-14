@@ -1,0 +1,15 @@
+
+.peg-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  
+  .peg {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #333;
+  }
+  
