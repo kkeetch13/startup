@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import PegRow from '../components/PegRow';
+import { submitScore } from '../api.js';
 
 function chunkArray(arr, size) {
   const result = [];
@@ -8,7 +10,7 @@ function chunkArray(arr, size) {
   return result;
 }
 
-export default function Play() {
+export default function Play({ userName }) {
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
   const generateSecret = () => {
@@ -24,12 +26,16 @@ export default function Play() {
   const [guess, setGuess] = useState([]);
   const [feedbackMessage, setFeedbackMessage] = useState('Make your guess by selecting 4 colors.');
   const [history, setHistory] = useState([]);
+  const [startTime, setStartTime] = useState(Date.now());
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
   const resetGame = () => {
     setSecret(generateSecret());
     setGuess([]);
     setFeedbackMessage('New game! Make your guess by selecting 4 colors.');
     setHistory([]);
+    setStartTime(Date.now());
+    setScoreSubmitted(false);
   };
 
   const handleColorClick = (color) => {
@@ -68,7 +74,7 @@ export default function Play() {
     return feedbackArray;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (guess.length !== 4) {
       setFeedbackMessage('Please select exactly 4 colors.');
@@ -76,12 +82,21 @@ export default function Play() {
     }
     const feedbackPegs = getFeedback(secret, guess);
     const greenCount = feedbackPegs.filter((peg) => peg === 'green').length;
+
     setHistory([...history, { guess: [...guess], feedback: feedbackPegs }]);
     if (greenCount === 4) {
-      setFeedbackMessage('Congratulations! You cracked the code.');
-      setTimeout(() => {
-        resetGame();
-      }, 2000);
+      const finishTime = (Date.now() - startTime) / 1000;
+      setFeedbackMessage(`Congratulations! You cracked the code in ${finishTime} seconds. Your score has been submitted.`);
+      if (!scoreSubmitted) {
+        try {
+          await submitScore(userName || "Anonymous", finishTime, new Date().toLocaleDateString());
+          setScoreSubmitted(true);
+        } catch (err) {
+          console.error("Score submission error", err);
+          setFeedbackMessage("You cracked the code, but there was an error submitting your score.");
+        }
+      }
+      // The game now remains on-screen; user must click "Reset Game" manually.
     } else {
       setFeedbackMessage('Try again!');
       setGuess([]);
@@ -130,7 +145,7 @@ export default function Play() {
         ))}
       </div>
       <form onSubmit={handleSubmit}>
-        <button
+        <button 
           type="submit"
           className="btn btn-primary me-2"
           disabled={guess.length !== 4}

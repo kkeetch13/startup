@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './app.css';
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
@@ -6,8 +6,12 @@ import Auth from './login/login';
 import Play from './play/play';
 import { Projects } from './projects/projects';
 import { About } from './about/about';
+import Scores from './scores/scores';
 
 export default function App() {
+  // State to hold the logged-in user's name.
+  const [user, setUser] = useState(null);
+
   return (
     <BrowserRouter>
       <div className="body bg-dark text-light">
@@ -29,6 +33,9 @@ export default function App() {
                   <li className="nav-item">
                     <NavLink className="nav-link" to="/about">About</NavLink>
                   </li>
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/scores">Scores</NavLink>
+                  </li>
                 </ul>
               </nav>
             </div>
@@ -36,14 +43,15 @@ export default function App() {
         </header>
 
         <main>
-        <Routes>
-  <Route path="/" element={<Auth onLogin={(email) => console.log("Logged in:", email)} />} />
-  <Route path="/play" element={<Play />} />
-  <Route path="/projects" element={<Projects />} />
-  <Route path="/about" element={<About />} />
-  <Route path="*" element={<h2 className="text-center py-5">404: Page not found</h2>} />
-</Routes>
-
+          <Routes>
+            {/* If a user is logged in, show Play; otherwise, show the Auth screen */}
+            <Route path="/" element={user ? <Play userName={user} /> : <Auth onLogin={setUser} />} />
+            <Route path="/play" element={<Play userName={user} />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/scores" element={<Scores />} />
+            <Route path="*" element={<h2 className="text-center py-5">404: Page not found</h2>} />
+          </Routes>
         </main>
 
         <footer className="bg-dark text-white-50 py-3">

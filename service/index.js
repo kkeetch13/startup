@@ -42,8 +42,7 @@ apiRouter.post('/auth/login', async (req, res) => {
   if (user && (await bcrypt.compare(password, user.password))) {
     user.token = uuid.v4();
     setAuthCookie(res, user.token);
-    res.send({ email: user.email });
-    return;
+    return res.status(200).send({ email: user.email });
   }
   res.status(401).send({ msg: 'Unauthorized' });
 });
@@ -72,10 +71,11 @@ apiRouter.get('/scores', verifyAuth, (_req, res) => {
 });
 
 apiRouter.post('/score', verifyAuth, (req, res) => {
-  const newScore = req.body;
+  const newScore = req.body; 
+  
   let inserted = false;
   for (let i = 0; i < scores.length; i++) {
-    if (newScore.score > scores[i].score) {
+    if (newScore.time < scores[i].time) {
       scores.splice(i, 0, newScore);
       inserted = true;
       break;
@@ -84,6 +84,7 @@ apiRouter.post('/score', verifyAuth, (req, res) => {
   if (!inserted) {
     scores.push(newScore);
   }
+
   if (scores.length > 10) {
     scores = scores.slice(0, 10);
   }

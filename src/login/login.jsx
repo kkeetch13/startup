@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { registerUser, loginUser } from '../../api.js';
+import { registerUser, loginUser } from '../api.js';
 
 export default function Auth({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
