@@ -38,5 +38,5 @@ Added interactive elements to the site, such as a functioning login system and r
 ## Startup Service
 I built a full‑stack Mastermind game application where I created a Node.js/Express backend with endpoints for authentication and high score submissions, and a React frontend that consumes these endpoints. I implemented secure login, registration, and logout functionalities while also integrating a high score submission feature based on the fastest time solved. Through this project, I learned how to manage state across components and routes, and how to seamlessly connect backend services with a modern, interactive frontend. 
 
-
-
+## Database
+By integrating MongoDB into my startup project, I learned how to persist user authentication and game data securely using a cloud database. I implemented login, registration, and session management with token-based authentication, ensuring that only authorized users could access and post scores. I also created and connected API endpoints to perform secure reads and writes from the database. This experience gave me a deeper understanding of backend development and how to connect frontend logic to a real-world database.
