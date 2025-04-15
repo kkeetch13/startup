@@ -60,8 +60,8 @@ export default function App() {
 
         <main>
           <Routes>
-            <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={(email) => setUser({ email })} />} />
-            <Route path="/play" element={<Play userName={user ? user.email : "Anonymous"} />} />
+          <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={setUser} />} />
+          <Route path="/play" element={<Play userName={user ? user.email : "Anonymous"} />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/about" element={<About />} />
             <Route path="/scores" element={<Scores />} />

@@ -4,10 +4,12 @@ export async function registerUser(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
+
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.msg || 'Registration failed');
   }
+
   return await res.json();
 }
 
@@ -17,10 +19,12 @@ export async function loginUser(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
+
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.msg || 'Login failed');
   }
+
   return await res.json();
 }
 
@@ -28,17 +32,18 @@ export async function logoutUser() {
   const res = await fetch('/api/auth/logout', {
     method: 'DELETE',
   });
+
   if (!res.ok) {
     throw new Error('Logout failed');
   }
 }
 
-export async function submitScore(name, score, date) {
+export async function submitScore(name, time, date) {
   const res = await fetch('/api/score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', 
-    body: JSON.stringify({ name, time: score, date }),
+    credentials: 'include',
+    body: JSON.stringify({ name, time, date }), // ✅ clear and accurate
   });
 
   if (!res.ok) {
@@ -49,13 +54,14 @@ export async function submitScore(name, score, date) {
   return await res.json();
 }
 
-
 export async function getHighScores() {
   const res = await fetch('/api/scores', {
     credentials: 'include',
   });
+
   if (!res.ok) {
     throw new Error('Unable to load scores');
   }
+
   return await res.json();
 }
