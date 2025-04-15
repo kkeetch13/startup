@@ -3,7 +3,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const uuid = require('uuid');
-const { connectToDatabase, userCollection, scoreCollection } = require('./db.js');
+const { userCollection, scoreCollection } = require('./db.js');
 
 const app = express();
 const port = process.argv[2] || 3000;
@@ -17,7 +17,7 @@ const authCookieName = 'token';
 const apiRouter = express.Router();
 app.use('/api', apiRouter);
 
-// ✅ STEP 3: Create user using MongoDB
+
 apiRouter.post('/auth/create', async (req, res) => {
   const { email, password } = req.body;
 
@@ -31,7 +31,7 @@ apiRouter.post('/auth/create', async (req, res) => {
   const user = {
     email,
     password: passwordHash,
-    token: uuid.v4()
+    token: uuid.v4(),
   };
 
   await userCollection.insertOne(user);
@@ -39,25 +39,65 @@ apiRouter.post('/auth/create', async (req, res) => {
   res.status(200).send({ email: user.email });
 });
 
-// ✅ Login, logout, score routes will be updated in future steps
+
 apiRouter.post('/auth/login', async (req, res) => {
-  res.status(501).send({ msg: 'Not implemented yet' });
+  const { email, password } = req.body;
+  const user = await userCollection.findOne({ email });
+  if (user && (await bcrypt.compare(password, user.password))) {
+    user.token = uuid.v4();
+    await userCollection.updateOne({ email }, { $set: { token: user.token } });
+    setAuthCookie(res, user.token);
+    return res.status(200).send({ email: user.email });
+  }
+  res.status(401).send({ msg: 'Unauthorized' });
 });
 
-apiRouter.delete('/auth/logout', (req, res) => {
-  res.status(501).send({ msg: 'Not implemented yet' });
+
+apiRouter.delete('/auth/logout', async (req, res) => {
+  const token = req.cookies[authCookieName];
+  await userCollection.updateOne({ token }, { $unset: { token: "" } });
+  res.clearCookie(authCookieName);
+  res.status(204).end();
 });
 
-const verifyAuth = (req, res, next) => {
-  res.status(501).send({ msg: 'Not implemented yet' });
+const verifyAuth = async (req, res, next) => {
+  const token = req.cookies[authCookieName];
+  const user = await userCollection.findOne({ token });
+  if (!user) {
+    return res.status(401).send({ msg: 'Unauthorized' });
+  }
+  req.user = user; 
+  next();
 };
 
-apiRouter.get('/scores', verifyAuth, (_req, res) => {
-  res.status(501).send({ msg: 'Not implemented yet' });
+
+apiRouter.get('/scores', verifyAuth, async (_req, res) => {
+  const scores = await scoreCollection
+    .find({})
+    .sort({ time: 1 })
+    .limit(10)
+    .toArray();
+  res.send({ scores });
 });
 
-apiRouter.post('/score', verifyAuth, (req, res) => {
-  res.status(501).send({ msg: 'Not implemented yet' });
+
+apiRouter.post('/score', verifyAuth, async (req, res) => {
+  const { time, date } = req.body;
+  const newScore = {
+    name: req.user.email,
+    time,
+    date,
+  };
+
+  await scoreCollection.insertOne(newScore);
+
+  const topScores = await scoreCollection
+    .find({})
+    .sort({ time: 1 })
+    .limit(10)
+    .toArray();
+
+  res.send({ scores: topScores });
 });
 
 app.get('*', (req, res) => {
@@ -68,13 +108,10 @@ function setAuthCookie(res, token) {
   res.cookie(authCookieName, token, {
     secure: true,
     httpOnly: true,
-    sameSite: 'strict'
+    sameSite: 'strict',
   });
 }
 
-(async function startServer() {
-  await connectToDatabase();
-  app.listen(port, () => {
-    console.log(`Listening on port ${port}`);
-  });
-})();
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
