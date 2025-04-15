@@ -18,7 +18,40 @@ const scoreCollection = db.collection('score');
   }
 })();
 
+function getUser(email) {
+    return userCollection.findOne({ email });
+  }
+  
+  function getUserByToken(token) {
+    return userCollection.findOne({ token });
+  }
+  
+  async function addUser(user) {
+    await userCollection.insertOne(user);
+  }
+  
+  async function updateUser(user) {
+    await userCollection.updateOne({ email: user.email }, { $set: user });
+  }
+  
+  async function addScore(score) {
+    await scoreCollection.insertOne(score);
+  }
+  
+  function getHighScores() {
+    return scoreCollection
+      .find({})
+      .sort({ time: 1 })
+      .limit(10)
+      .toArray();
+  }
+  
+
 module.exports = {
-  userCollection,
-  scoreCollection,
-};
+    getUser,
+    getUserByToken,
+    addUser,
+    updateUser,
+    addScore,
+    getHighScores,
+  };

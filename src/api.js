@@ -33,22 +33,27 @@ export async function logoutUser() {
   }
 }
 
-export async function submitScore(time, date) {
+export async function submitScore(name, score, date) {
   const res = await fetch('/api/score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ time, date }),
+    credentials: 'include', 
+    body: JSON.stringify({ name, time: score, date }),
   });
+
   if (!res.ok) {
-    const error = await res.json();
+    const error = await res.json().catch(() => ({}));
     throw new Error(error.msg || 'Score submission failed');
   }
+
   return await res.json();
 }
 
 
 export async function getHighScores() {
-  const res = await fetch('/api/scores');
+  const res = await fetch('/api/scores', {
+    credentials: 'include',
+  });
   if (!res.ok) {
     throw new Error('Unable to load scores');
   }

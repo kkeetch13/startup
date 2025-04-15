@@ -11,12 +11,12 @@ export default function Scores() {
         const result = await getHighScores();
         setScores(result.scores);
       } catch (err) {
-        setError('Failed to fetch scores. Please try again later.');
-        console.error('Score fetch error:', err);
+        setError("Failed to fetch scores. Please try again later.");
       }
     }
     fetchScores();
   }, []);
+  
 
   return (
     <main className="container py-4 text-center text-light">

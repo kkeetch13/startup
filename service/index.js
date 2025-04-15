@@ -28,7 +28,7 @@ apiRouter.post('/auth/create', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const existingUser = await userCollection.findOne({ email });
+    const existingUser = await getUser(email);
     if (existingUser) {
       return res.status(409).send({ msg: 'Existing user' });
     }
@@ -40,12 +40,11 @@ apiRouter.post('/auth/create', async (req, res) => {
       token: uuid.v4(),
     };
 
-    await userCollection.insertOne(user);
+    await addUser(user);
     setAuthCookie(res, user.token);
     res.status(200).send({ email: user.email });
-
   } catch (err) {
-    console.error('Error creating user:', err);
+    console.error('Registration error:', err);
     res.status(500).send({ msg: 'Internal server error' });
   }
 });
@@ -55,28 +54,35 @@ apiRouter.post('/auth/create', async (req, res) => {
 apiRouter.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await userCollection.findOne({ email });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const newToken = uuid.v4();
-      await userCollection.updateOne({ email }, { $set: { token: newToken } });
-      setAuthCookie(res, newToken);
-      return res.status(200).send({ email: user.email });
+    const user = await getUser(email);
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).send({ msg: 'Invalid email or password' });
     }
 
-    res.status(401).send({ msg: 'Unauthorized' });
+    user.token = uuid.v4();
+    await updateUser(user);
+
+    setAuthCookie(res, user.token);
+    res.status(200).send({ email: user.email });
   } catch (err) {
-    console.error('Error during login:', err);
+    console.error('Login error:', err);
     res.status(500).send({ msg: 'Internal server error' });
   }
 });
 
 
 
+
 apiRouter.delete('/auth/logout', async (req, res) => {
   try {
     const token = req.cookies[authCookieName];
-    await userCollection.updateOne({ token }, { $unset: { token: "" } });
+    const user = await getUserByToken(token);
+    if (user) {
+      delete user.token;
+      await updateUser(user);
+    }
     res.clearCookie(authCookieName);
     res.status(204).end();
   } catch (err) {
@@ -87,10 +93,11 @@ apiRouter.delete('/auth/logout', async (req, res) => {
 
 
 
+
 const verifyAuth = async (req, res, next) => {
+  const token = req.cookies[authCookieName];
   try {
-    const token = req.cookies[authCookieName];
-    const user = await userCollection.findOne({ token });
+    const user = await getUserByToken(token);
     if (!user) {
       return res.status(401).send({ msg: 'Unauthorized' });
     }
@@ -98,55 +105,37 @@ const verifyAuth = async (req, res, next) => {
     next();
   } catch (err) {
     console.error('Error verifying auth:', err);
-    res.status(500).send({ msg: 'Internal server error' });
+    res.status(500).send({ msg: 'Internal server error during auth.' });
   }
 };
 
 
 
-apiRouter.get('/scores', verifyAuth, async (_req, res) => {
-  try {
-    const scores = await scoreCollection
-      .find({})
-      .sort({ time: 1 })
-      .limit(10)
-      .toArray();
-    res.send({ scores });
-  } catch (err) {
-    console.error('Error fetching scores:', err);
-    res.status(500).send({ msg: 'Failed to fetch scores' });
-  }
-});
 
+apiRouter.get('/scores', verifyAuth, async (_req, res) => {
+  const scores = await getHighScores();
+  res.send({ scores });
+});
 
 
 apiRouter.post('/score', verifyAuth, async (req, res) => {
   try {
     const { time, date } = req.body;
+    console.log('Submitting score for user:', req.user.email, 'Time:', time, 'Date:', date);
+
     const newScore = {
       name: req.user.email,
       time,
       date,
     };
 
-    await scoreCollection.insertOne(newScore);
-
-    const topScores = await scoreCollection
-      .find({})
-      .sort({ time: 1 })
-      .limit(10)
-      .toArray();
-
+    await addScore(newScore);
+    const topScores = await getHighScores();
     res.send({ scores: topScores });
   } catch (err) {
-    console.error('Error submitting score:', err);
-    res.status(500).send({ msg: 'Failed to submit score' });
+    console.error('Error submitting score:', err.message);
+    res.status(500).send({ msg: 'Internal server error while submitting score.' });
   }
-});
-
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
