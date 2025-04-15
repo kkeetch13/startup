@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './app.css';
-import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import Auth from './login/login';
 import Play from './play/play';
 import { Projects } from './projects/projects';
@@ -60,7 +60,7 @@ export default function App() {
 
         <main>
           <Routes>
-            <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={setUser} />} />
+            <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={(email) => setUser({ email })} />} />
             <Route path="/play" element={<Play userName={user ? user.email : "Anonymous"} />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/about" element={<About />} />
