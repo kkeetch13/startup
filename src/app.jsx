@@ -5,7 +5,7 @@ import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 import Auth from './login/login';
 import Play from './play/play';
 import { Projects } from './projects/projects';
-import { About } from './about/about';
+import About from './about/about';
 import Scores from './scores/scores';
 import { logoutUser } from './api.js';
 
