@@ -25,76 +25,125 @@ app.use('/api', apiRouter);
 
 
 apiRouter.post('/auth/create', async (req, res) => {
-  const { email, password } = req.body;
-  const existingUser = await getUser(email);
-  if (existingUser) {
-    res.status(409).send({ msg: 'Existing user' });
-    return;
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await userCollection.findOne({ email });
+    if (existingUser) {
+      return res.status(409).send({ msg: 'Existing user' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = {
+      email,
+      password: passwordHash,
+      token: uuid.v4(),
+    };
+
+    await userCollection.insertOne(user);
+    setAuthCookie(res, user.token);
+    res.status(200).send({ email: user.email });
+
+  } catch (err) {
+    console.error('Error creating user:', err);
+    res.status(500).send({ msg: 'Internal server error' });
   }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-  const user = { email, password: passwordHash, token: uuid.v4() };
-  await addUser(user);
-
-  setAuthCookie(res, user.token);
-  res.status(200).send({ email: user.email });
 });
+
 
 
 apiRouter.post('/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await getUser(email);
-  if (user && (await bcrypt.compare(password, user.password))) {
-    user.token = uuid.v4();
-    await updateUser(user);
-    setAuthCookie(res, user.token);
-    return res.status(200).send({ email: user.email });
+  try {
+    const { email, password } = req.body;
+    const user = await userCollection.findOne({ email });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const newToken = uuid.v4();
+      await userCollection.updateOne({ email }, { $set: { token: newToken } });
+      setAuthCookie(res, newToken);
+      return res.status(200).send({ email: user.email });
+    }
+
+    res.status(401).send({ msg: 'Unauthorized' });
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).send({ msg: 'Internal server error' });
   }
-  res.status(401).send({ msg: 'Unauthorized' });
 });
+
 
 
 apiRouter.delete('/auth/logout', async (req, res) => {
-  const token = req.cookies[authCookieName];
-  const user = await getUserByToken(token);
-  if (user) {
-    delete user.token;
-    await updateUser(user);
+  try {
+    const token = req.cookies[authCookieName];
+    await userCollection.updateOne({ token }, { $unset: { token: "" } });
+    res.clearCookie(authCookieName);
+    res.status(204).end();
+  } catch (err) {
+    console.error('Error during logout:', err);
+    res.status(500).send({ msg: 'Internal server error' });
   }
-  res.clearCookie(authCookieName);
-  res.status(204).end();
 });
+
 
 
 const verifyAuth = async (req, res, next) => {
-  const token = req.cookies[authCookieName];
-  const user = await getUserByToken(token);
-  if (!user) {
-    return res.status(401).send({ msg: 'Unauthorized' });
+  try {
+    const token = req.cookies[authCookieName];
+    const user = await userCollection.findOne({ token });
+    if (!user) {
+      return res.status(401).send({ msg: 'Unauthorized' });
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error('Error verifying auth:', err);
+    res.status(500).send({ msg: 'Internal server error' });
   }
-  req.user = user;
-  next();
 };
 
 
+
 apiRouter.get('/scores', verifyAuth, async (_req, res) => {
-  const scores = await getHighScores();
-  res.send({ scores });
+  try {
+    const scores = await scoreCollection
+      .find({})
+      .sort({ time: 1 })
+      .limit(10)
+      .toArray();
+    res.send({ scores });
+  } catch (err) {
+    console.error('Error fetching scores:', err);
+    res.status(500).send({ msg: 'Failed to fetch scores' });
+  }
 });
+
 
 
 apiRouter.post('/score', verifyAuth, async (req, res) => {
-  const { time, date } = req.body;
-  const newScore = {
-    name: req.user.email,
-    time,
-    date,
-  };
+  try {
+    const { time, date } = req.body;
+    const newScore = {
+      name: req.user.email,
+      time,
+      date,
+    };
 
-  await addScore(newScore);
-  const scores = await getHighScores();
-  res.send({ scores });
+    await scoreCollection.insertOne(newScore);
+
+    const topScores = await scoreCollection
+      .find({})
+      .sort({ time: 1 })
+      .limit(10)
+      .toArray();
+
+    res.send({ scores: topScores });
+  } catch (err) {
+    console.error('Error submitting score:', err);
+    res.status(500).send({ msg: 'Failed to submit score' });
+  }
 });
+
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

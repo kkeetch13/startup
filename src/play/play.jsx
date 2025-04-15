@@ -11,7 +11,7 @@ function chunkArray(arr, size) {
   return result;
 }
 
-export default function Play({ userName }) {
+export default function Play() {
   const navigate = useNavigate();
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
@@ -91,7 +91,7 @@ export default function Play({ userName }) {
       setFeedbackMessage(`Congratulations! You cracked the code in ${finishTime} seconds. Your score has been submitted.`);
       if (!scoreSubmitted) {
         try {
-          await submitScore(userName || "Anonymous", finishTime, new Date().toLocaleDateString());
+          await submitScore(finishTime, new Date().toLocaleDateString());
           setScoreSubmitted(true);
         } catch (err) {
           console.error("Score submission error", err);

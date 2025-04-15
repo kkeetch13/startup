@@ -33,11 +33,11 @@ export async function logoutUser() {
   }
 }
 
-export async function submitScore(name, time, date) {
+export async function submitScore(time, date) {
   const res = await fetch('/api/score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, time, date }),
+    body: JSON.stringify({ time, date }),
   });
   if (!res.ok) {
     const error = await res.json();
@@ -45,6 +45,7 @@ export async function submitScore(name, time, date) {
   }
   return await res.json();
 }
+
 
 export async function getHighScores() {
   const res = await fetch('/api/scores');
