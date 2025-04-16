@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PegRow from '../components/PegRow';
 import { submitScore } from '../api.js';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ function chunkArray(arr, size) {
 
 export default function Play({ userName }) {
   const navigate = useNavigate();
+  const socketRef = useRef(null);
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
   const [secret, setSecret] = useState(generateSecret());
@@ -34,28 +35,30 @@ export default function Play({ userName }) {
 
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const socket = new WebSocket(`${protocol}://${window.location.host}`);
+    const socket = new WebSocket(`${protocol}://localhost:3000/ws`);
 
+  
     socket.onopen = () => {
-      console.log('🌐 WebSocket connected from Play.jsx!');
-      socket.send('Client connected from Play.jsx!');
+      console.log('🌐 WebSocket connected!');
+      socket.send('🎮 Player has connected!');
     };
-
+  
     socket.onmessage = (event) => {
       console.log('📩 Message from server:', event.data);
       setWsMessage(event.data);
     };
-
+  
     socket.onerror = (err) => {
       console.error('❌ WebSocket error:', err);
     };
-
+  
     socket.onclose = () => {
-      console.log('🔌 WebSocket connection closed');
+      console.log('🔌 WebSocket disconnected');
     };
-
+  
     return () => socket.close();
   }, []);
+  
 
   const resetGame = () => {
     setSecret(generateSecret());
@@ -64,6 +67,7 @@ export default function Play({ userName }) {
     setHistory([]);
     setStartTime(Date.now());
     setScoreSubmitted(false);
+    setWsMessage('');
   };
 
   const handleColorClick = (color) => {
@@ -108,17 +112,24 @@ export default function Play({ userName }) {
       setFeedbackMessage('Please select exactly 4 colors.');
       return;
     }
+
     const feedbackPegs = getFeedback(secret, guess);
     const greenCount = feedbackPegs.filter((peg) => peg === 'green').length;
 
     setHistory([...history, { guess: [...guess], feedback: feedbackPegs }]);
+
     if (greenCount === 4) {
       const finishTime = (Date.now() - startTime) / 1000;
       setFeedbackMessage(`Congratulations! You cracked the code in ${finishTime} seconds. Your score has been submitted.`);
+
       if (!scoreSubmitted) {
         try {
           await submitScore(userName || "Anonymous", finishTime, new Date().toLocaleDateString());
           setScoreSubmitted(true);
+
+          if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(`✅ Score submitted by ${userName || "Anonymous"} in ${finishTime} seconds.`);
+          }
         } catch (err) {
           console.error("Score submission error", err);
           setFeedbackMessage("You cracked the code, but there was an error submitting your score.");
@@ -137,13 +148,11 @@ export default function Play({ userName }) {
     >
       <h1 style={{ color: '#ddd' }}>Mastermind Game</h1>
       <p style={{ color: '#fff' }}>{feedbackMessage}</p>
-
       {wsMessage && (
         <div className="alert alert-info" role="alert">
           WebSocket Message: {wsMessage}
         </div>
       )}
-
       <div className="mb-3">
         {availableColors.map((color) => (
           <button
@@ -179,7 +188,7 @@ export default function Play({ userName }) {
         ))}
       </div>
       <form onSubmit={handleSubmit}>
-        <button
+        <button 
           type="submit"
           className="btn btn-primary me-2"
           disabled={guess.length !== 4}
@@ -190,8 +199,8 @@ export default function Play({ userName }) {
         <button type="button" onClick={resetGame} className="btn btn-secondary">
           Reset Game
         </button>
-        <button
-          type="button"
+        <button 
+          type="button" 
           className="btn btn-info ms-2"
           onClick={() => navigate('/scores')}
         >

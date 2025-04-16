@@ -40,3 +40,6 @@ I built a full‑stack Mastermind game application where I created a Node.js/Exp
 
 ## Database
 By integrating MongoDB into my startup project, I learned how to persist user authentication and game data securely using a cloud database. I implemented login, registration, and session management with token-based authentication, ensuring that only authorized users could access and post scores. I also created and connected API endpoints to perform secure reads and writes from the database. This experience gave me a deeper understanding of backend development and how to connect frontend logic to a real-world database.
+
+## WebSocket
+ I set up a WebSocket server that connects to the frontend, allowing real-time communication between client and server. To enhance interactivity, I added frontend logic to send and display WebSocket messages, such as when a player submits a score.

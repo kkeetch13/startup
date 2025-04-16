@@ -125,7 +125,7 @@ function setAuthCookie(res, token) {
 }
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server, path: '/ws' });
 
 wss.on('connection', (ws) => {
   console.log('WebSocket connected');
