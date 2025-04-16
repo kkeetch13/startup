@@ -35,8 +35,11 @@ export default function Play({ userName }) {
 
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const socket = new WebSocket(`${protocol}://localhost:3000/ws`);
-
+  
+    
+    const host = import.meta.env.DEV ? 'localhost:4000' : window.location.host;
+  
+    const socket = new WebSocket(`${protocol}://${host}/ws`);
   
     socket.onopen = () => {
       console.log('🌐 WebSocket connected!');
@@ -58,6 +61,8 @@ export default function Play({ userName }) {
   
     return () => socket.close();
   }, []);
+  
+  
   
 
   const resetGame = () => {

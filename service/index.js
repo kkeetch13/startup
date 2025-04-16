@@ -16,8 +16,11 @@ const {
 } = require('./db.js');
 
 const app = express();
-const port = process.argv[2] || 3000;
+const port = process.argv[2] || 4000;
 const authCookieName = 'token';
+
+
+app.set('trust proxy', true);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -75,7 +78,6 @@ apiRouter.delete('/auth/logout', async (req, res) => {
   }
 });
 
-
 const verifyAuth = async (req, res, next) => {
   const token = req.cookies[authCookieName];
   try {
@@ -115,28 +117,28 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-
 function setAuthCookie(res, token) {
   res.cookie(authCookieName, token, {
-    secure: true,
+    secure: true,      
     httpOnly: true,
     sameSite: 'strict',
   });
 }
 
+
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 
-wss.on('connection', (ws) => {
-  console.log('WebSocket connected');
+wss.on('connection', (ws, req) => {
+  console.log('✅ WebSocket connection established');
 
-  ws.send('Welcome to the startup WebSocket server!');
+  ws.send('👋 Welcome to the startup WebSocket server!');
 
   ws.on('message', (data) => {
-    console.log('Received WebSocket message:', data.toString());
+    console.log('📩 Received WebSocket message:', data.toString());
   });
 });
 
 server.listen(port, () => {
-  console.log(`Express + WebSocket server running on port ${port}`);
+  console.log(`🚀 Express + WebSocket server running on port ${port}`);
 });
