@@ -15,31 +15,29 @@ export default function Play({ userName }) {
   const navigate = useNavigate();
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
-
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const socket = new WebSocket(`${protocol}://${window.location.host}`);
+    const socket = new WebSocket(`${protocol}://localhost:3000`);
 
     socket.onopen = () => {
-      console.log('WebSocket connected');
+      console.log('🌐 WebSocket connected from Play.jsx!');
       socket.send('Client connected from Play.jsx!');
     };
 
     socket.onmessage = (event) => {
-      console.log('Message from server:', event.data);
+      console.log('📩 Message from server:', event.data);
     };
 
     socket.onerror = (err) => {
-      console.error('WebSocket error:', err);
+      console.error('❌ WebSocket error:', err);
     };
 
     socket.onclose = () => {
-      console.log('WebSocket connection closed');
+      console.log('🔌 WebSocket connection closed');
     };
 
     return () => socket.close();
   }, []);
-  // ----------------------------
 
   const generateSecret = () => {
     const secret = [];
