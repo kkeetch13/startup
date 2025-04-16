@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './app.css';
-import { BrowserRouter, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 import Auth from './login/login';
 import Play from './play/play';
 import { Projects } from './projects/projects';
@@ -11,6 +11,27 @@ import { logoutUser } from './api.js';
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [wsMessage, setWsMessage] = useState('');
+
+  useEffect(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socket = new WebSocket(`${protocol}://${window.location.host}`);
+
+    socket.onopen = () => {
+      console.log('WebSocket connected');
+    };
+
+    socket.onmessage = (event) => {
+      console.log('WebSocket message received:', event.data);
+      setWsMessage(event.data);
+    };
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    return () => socket.close();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -59,9 +80,14 @@ export default function App() {
         </header>
 
         <main>
+          {wsMessage && (
+            <div className="alert alert-info text-center" role="alert">
+              {wsMessage}
+            </div>
+          )}
           <Routes>
-          <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={setUser} />} />
-          <Route path="/play" element={<Play userName={user ? user.email : "Anonymous"} />} />
+            <Route path="/" element={user ? <Play userName={user.email} /> : <Auth onLogin={setUser} />} />
+            <Route path="/play" element={<Play userName={user ? user.email : "Anonymous"} />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/about" element={<About />} />
             <Route path="/scores" element={<Scores />} />
