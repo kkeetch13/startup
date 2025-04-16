@@ -15,9 +15,26 @@ export default function Play({ userName }) {
   const navigate = useNavigate();
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
 
+  const [secret, setSecret] = useState(generateSecret());
+  const [guess, setGuess] = useState([]);
+  const [feedbackMessage, setFeedbackMessage] = useState('Make your guess by selecting 4 colors.');
+  const [history, setHistory] = useState([]);
+  const [startTime, setStartTime] = useState(Date.now());
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [wsMessage, setWsMessage] = useState('');
+
+  function generateSecret() {
+    const secret = [];
+    for (let i = 0; i < 4; i++) {
+      const randIndex = Math.floor(Math.random() * availableColors.length);
+      secret.push(availableColors[randIndex]);
+    }
+    return secret;
+  }
+
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const socket = new WebSocket(`${protocol}://localhost:3000`);
+    const socket = new WebSocket(`${protocol}://${window.location.host}`);
 
     socket.onopen = () => {
       console.log('🌐 WebSocket connected from Play.jsx!');
@@ -26,6 +43,7 @@ export default function Play({ userName }) {
 
     socket.onmessage = (event) => {
       console.log('📩 Message from server:', event.data);
+      setWsMessage(event.data);
     };
 
     socket.onerror = (err) => {
@@ -38,22 +56,6 @@ export default function Play({ userName }) {
 
     return () => socket.close();
   }, []);
-
-  const generateSecret = () => {
-    const secret = [];
-    for (let i = 0; i < 4; i++) {
-      const randIndex = Math.floor(Math.random() * availableColors.length);
-      secret.push(availableColors[randIndex]);
-    }
-    return secret;
-  };
-
-  const [secret, setSecret] = useState(generateSecret());
-  const [guess, setGuess] = useState([]);
-  const [feedbackMessage, setFeedbackMessage] = useState('Make your guess by selecting 4 colors.');
-  const [history, setHistory] = useState([]);
-  const [startTime, setStartTime] = useState(Date.now());
-  const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
   const resetGame = () => {
     setSecret(generateSecret());
@@ -135,6 +137,13 @@ export default function Play({ userName }) {
     >
       <h1 style={{ color: '#ddd' }}>Mastermind Game</h1>
       <p style={{ color: '#fff' }}>{feedbackMessage}</p>
+
+      {wsMessage && (
+        <div className="alert alert-info" role="alert">
+          WebSocket Message: {wsMessage}
+        </div>
+      )}
+
       <div className="mb-3">
         {availableColors.map((color) => (
           <button
@@ -170,7 +179,7 @@ export default function Play({ userName }) {
         ))}
       </div>
       <form onSubmit={handleSubmit}>
-        <button 
+        <button
           type="submit"
           className="btn btn-primary me-2"
           disabled={guess.length !== 4}
@@ -181,8 +190,8 @@ export default function Play({ userName }) {
         <button type="button" onClick={resetGame} className="btn btn-secondary">
           Reset Game
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           className="btn btn-info ms-2"
           onClick={() => navigate('/scores')}
         >
