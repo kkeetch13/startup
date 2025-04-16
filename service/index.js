@@ -3,6 +3,9 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const uuid = require('uuid');
+const http = require('http');
+const { WebSocketServer } = require('ws');
+
 const {
   getUser,
   getUserByToken,
@@ -27,18 +30,11 @@ app.use('/api', apiRouter);
 apiRouter.post('/auth/create', async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const existingUser = await getUser(email);
-    if (existingUser) {
-      return res.status(409).send({ msg: 'Existing user' });
-    }
+    if (existingUser) return res.status(409).send({ msg: 'Existing user' });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = {
-      email,
-      password: passwordHash,
-      token: uuid.v4(),
-    };
+    const user = { email, password: passwordHash, token: uuid.v4() };
 
     await addUser(user);
     setAuthCookie(res, user.token);
@@ -49,17 +45,12 @@ apiRouter.post('/auth/create', async (req, res) => {
   }
 });
 
-
-
 apiRouter.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await getUser(email);
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || !(await bcrypt.compare(password, user.password)))
       return res.status(401).send({ msg: 'Invalid email or password' });
-    }
 
     user.token = uuid.v4();
     await updateUser(user);
@@ -72,44 +63,32 @@ apiRouter.post('/auth/login', async (req, res) => {
   }
 });
 
-
-
-
 apiRouter.delete('/auth/logout', async (req, res) => {
   try {
     const token = req.cookies[authCookieName];
-    const user = await getUserByToken(token);
-    if (user) {
-      delete user.token;
-      await updateUser(user);
-    }
+    await updateUser({ token: "", email: (await getUserByToken(token))?.email });
     res.clearCookie(authCookieName);
     res.status(204).end();
   } catch (err) {
-    console.error('Error during logout:', err);
+    console.error('Logout error:', err);
     res.status(500).send({ msg: 'Internal server error' });
   }
 });
-
-
 
 
 const verifyAuth = async (req, res, next) => {
   const token = req.cookies[authCookieName];
   try {
     const user = await getUserByToken(token);
-    if (!user) {
-      return res.status(401).send({ msg: 'Unauthorized' });
-    }
+    if (!user) return res.status(401).send({ msg: 'Unauthorized' });
+
     req.user = user;
     next();
   } catch (err) {
-    console.error('Error verifying auth:', err);
-    res.status(500).send({ msg: 'Internal server error during auth.' });
+    console.error('Auth verification error:', err);
+    res.status(500).send({ msg: 'Internal server error during auth' });
   }
 };
-
-
 
 
 apiRouter.get('/scores', verifyAuth, async (_req, res) => {
@@ -117,25 +96,23 @@ apiRouter.get('/scores', verifyAuth, async (_req, res) => {
   res.send({ scores });
 });
 
-
 apiRouter.post('/score', verifyAuth, async (req, res) => {
   try {
     const { time, date } = req.body;
-    console.log('Submitting score for user:', req.user.email, 'Time:', time, 'Date:', date);
-
-    const newScore = {
-      name: req.user.email,
-      time,
-      date,
-    };
+    const newScore = { name: req.user.email, time, date };
 
     await addScore(newScore);
     const topScores = await getHighScores();
     res.send({ scores: topScores });
   } catch (err) {
-    console.error('Error submitting score:', err.message);
+    console.error('Score submit error:', err);
     res.status(500).send({ msg: 'Internal server error while submitting score.' });
   }
+});
+
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
@@ -147,7 +124,19 @@ function setAuthCookie(res, token) {
   });
 }
 
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
+wss.on('connection', (ws) => {
+  console.log('WebSocket connected');
+
+  ws.send('Welcome to the startup WebSocket server!');
+
+  ws.on('message', (data) => {
+    console.log('Received WebSocket message:', data.toString());
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Express + WebSocket server running on port ${port}`);
 });
