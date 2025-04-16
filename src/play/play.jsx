@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PegRow from '../components/PegRow';
 import { submitScore } from '../api.js';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,32 @@ function chunkArray(arr, size) {
 export default function Play({ userName }) {
   const navigate = useNavigate();
   const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+
+
+  useEffect(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socket = new WebSocket(`${protocol}://${window.location.host}`);
+
+    socket.onopen = () => {
+      console.log('WebSocket connected');
+      socket.send('Client connected from Play.jsx!');
+    };
+
+    socket.onmessage = (event) => {
+      console.log('Message from server:', event.data);
+    };
+
+    socket.onerror = (err) => {
+      console.error('WebSocket error:', err);
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    return () => socket.close();
+  }, []);
+  // ----------------------------
 
   const generateSecret = () => {
     const secret = [];
